@@ -14,16 +14,15 @@ func (l *redisLocker) Lock(ctx context.Context, key string, expiration time.Dura
 	res, err := l.client.GetSet(ctx, key, 1).Result()
 	if err != nil && err != redis.Nil {
 		return
+	} else if res != "" {
+		err = ErrLocked
+		return
 	}
 
 	if expiration != 0 {
 		if _, err = l.client.Expire(ctx, key, expiration).Result(); err != nil {
 			return
 		}
-	}
-
-	if res != "" {
-		err = ErrLocked
 	}
 	return
 }
